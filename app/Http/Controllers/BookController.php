@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Request;
 
 class BookController extends Controller
 {
@@ -40,6 +41,8 @@ class BookController extends Controller
 
         Book::create($request->all());
 
+        $this->processImage($request);
+
         return redirect()->back()
             ->with('message', 'Book created');
     }
@@ -62,6 +65,8 @@ class BookController extends Controller
 
         $book->update($request->all());
 
+        $this->processImage($request);
+
         return redirect()->back()
             ->with('message', 'Book updated');
     }
@@ -77,5 +82,37 @@ class BookController extends Controller
         $book->delete();
         return redirect()->back()
             ->with('message', 'Book deleted');
+    }
+
+    public function upload(Request $request)
+    {
+        if($request->hasFile('imageFilepond'))
+        {
+            return $request->file('imageFilepond')->store('uploads/books', 'public');
+        }
+        return '';
+    }
+
+    public function uploadRevert(Request $request)
+    {
+        if($image = $request->get('image')) {
+            $path = storage_path('app/public/' . $image);
+            if(file_exists($path)){
+                unlink($path);
+            }
+        }
+        return '';
+    }
+
+    protected function processImage(Request $request)
+    {
+        if($image = $request->get('image'))
+        {
+            $path = storage_path('app/public/' . $image);
+            if(file_exists($path)){
+                copy($path, public_path($image));
+                unlink($path);
+            }
+        }
     }
 }
