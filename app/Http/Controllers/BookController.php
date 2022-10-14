@@ -63,9 +63,9 @@ class BookController extends Controller
             'author' => 'required'
         ])->validate();
 
-        $book->update($request->all());
+        $book->update($request->only(['title', 'author']));
 
-        $this->processImage($request);
+        $this->processImage($request, $book);
 
         return redirect()->back()
             ->with('message', 'Book updated');
@@ -104,7 +104,7 @@ class BookController extends Controller
         return '';
     }
 
-    protected function processImage(Request $request)
+    protected function processImage(Request $request, Book $book = null)
     {
         if($image = $request->get('image'))
         {
@@ -113,6 +113,22 @@ class BookController extends Controller
                 copy($path, public_path($image));
                 unlink($path);
             }
+        }
+
+        if($book)
+        {
+            if(!$request->get('image'))
+            {
+                if($book->image)
+                {
+                    if(file_exists(public_path($book->image))){
+                        unlink(public_path($book->image));
+                    }
+                }
+            }
+            $book->update([
+                'image' => $request->get('image')
+            ]);
         }
     }
 }
