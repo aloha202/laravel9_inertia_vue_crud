@@ -38,8 +38,11 @@ class BookObserver
     {
         if($book->image)
         {
-            if(file_exists(public_path($book->image))){
-                unlink(public_path($book->image));
+            foreach(explode('|', $book->image) as $image)
+            {
+                if(file_exists(public_path($image))){
+                    unlink(public_path($image));
+                }
             }
         }
     }

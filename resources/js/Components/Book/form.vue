@@ -40,7 +40,7 @@
                                 <file-pond
                                     name="imageFilepond"
                                     ref="pond"
-                                    v-bind:allow-multiple="false"
+                                    v-bind:allow-multiple="true"
                                     accepted-file-types="image/png, image/jpeg"
                                     v-bind:server="{
                                         url: '',
@@ -141,42 +141,72 @@
         },
         methods: {
             handleFilePondInit(){
-                if(this.form.image)
-                {
-                    this.myFiles = [{
+                this.myFiles = [];
 
-                        source: '/' + this.form.image,
+                let arr = this.form.image ? this.form.image.split('|') : [];
+
+                for(let i =0; i < arr.length; i++){
+                    this.myFiles.push({
+
+                        source: '/' + arr[i],
 
                         options: {
                             type: 'local',
                             metadata: {
-                                poster: '/' + this.form.image
+                                poster: '/' + arr[i]
                             }
                         }
 
-                    }];
-                }else{
-                    this.myFiles = [];
+                    });
                 }
+
+
+            },
+            addFormImage(image)
+            {
+                let arr = this.form.image ? this.form.image.split('|') : [];
+                arr.push(image);
+                this.form.image = arr.join('|');
+                console.log(this.form.image);
+            },
+            removeFormImage(image)
+            {
+                let arr = this.form.image ? this.form.image.split('|') : [];
+                arr.remove(image);
+                this.form.image = arr.join('|');
+                console.log(this.form.image);
             },
             handleFilePondLoad(response)
             {
-                this.form.image = response;
+                this.addFormImage(response);
+                return response;
             },
             handleFilePondRemove(source, load, error)
             {
-                this.form.image = '';
+                this.removeFormImage(source.replace(/^\//, ''));
                 load();
             },
             handleFilePondRevert(uniqueId, load, error)
             {
+                this.removeFormImage(uniqueId);
                 axios.post('/upload-books-revert', {
-                    image: this.form.image
+                    image: uniqueId
                 });
                 load();
             }
         }
     }
+
+    Array.prototype.remove = function() {
+        var what, a = arguments, L = a.length, ax;
+        while (L && this.length) {
+            what = a[--L];
+            while ((ax = this.indexOf(what)) !== -1) {
+                this.splice(ax, 1);
+            }
+        }
+        return this;
+    };
 
 
 </script>

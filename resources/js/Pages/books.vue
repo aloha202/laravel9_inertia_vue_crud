@@ -38,7 +38,9 @@
                                 <td class="px-4 py-2 border">{{ item.title }}</td>
                                 <td class="px-4 py-2 border">{{ item.author }}</td>
                                 <td class="px-4 py-2 border">
-                                    <img v-if="item.image" :src="image_path(item.image)" />
+                                    <div v-if="item.image">
+                                    <img v-for="img in item.image.split('|')" :src="image_path(img)" />
+                                    </div>
                                 </td>
                                 <td class="border px-4 py-2">
                                     <button

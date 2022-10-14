@@ -39,9 +39,9 @@ class BookController extends Controller
             'author' => 'required'
         ])->validate();
 
-        Book::create($request->all());
+        $book = Book::create($request->only(['title', 'author']));
 
-        $this->processImage($request);
+        $this->processImage($request, $book);
 
         return redirect()->back()
             ->with('message', 'Book created');
@@ -106,29 +106,29 @@ class BookController extends Controller
 
     protected function processImage(Request $request, Book $book = null)
     {
-        if($image = $request->get('image'))
+
+        $images = $request->get('image') ? explode('|', $request->get('image')) : [];
+
+        foreach($images as $image)
         {
-            $path = storage_path('app/public/' . $image);
-            if(file_exists($path)){
-                copy($path, public_path($image));
-                unlink($path);
+            if(!$book->hasImage($image)){
+                $path = storage_path('app/public/' . $image);
+                if(file_exists($path)){
+                    copy($path, public_path($image));
+                    unlink($path);
+                }
             }
         }
 
-        if($book)
+        foreach($book->findMissingImages($images) as $img)
         {
-            if(!$request->get('image'))
-            {
-                if($book->image)
-                {
-                    if(file_exists(public_path($book->image))){
-                        unlink(public_path($book->image));
-                    }
-                }
+            if(file_exists(public_path($img))){
+                unlink(public_path($img));
             }
-            $book->update([
-                'image' => $request->get('image')
-            ]);
         }
+
+        $book->update([
+            'image' => $request->get('image')
+        ]);
     }
 }

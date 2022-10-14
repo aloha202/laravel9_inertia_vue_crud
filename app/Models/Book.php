@@ -12,4 +12,26 @@ class Book extends Model
     protected $fillable = [
         'title','author','image'
     ];
+
+
+    public function hasImage(string $image):bool
+    {
+        return strpos($this->image, $image) !== false;
+    }
+
+    public function findMissingImages(array $images):array
+    {
+        $missingImages = [];
+        $currentImages = $this->image ? explode('|', $this->image) : [];
+
+        foreach($currentImages as $image)
+        {
+            if(!in_array($image, $images))
+            {
+                $missingImages[] = $image;
+            }
+        }
+
+        return $missingImages;
+    }
 }
